@@ -32,7 +32,7 @@ const Layout = (props: {
       </div>
     );
 
-  return <div className="container max-w-lg mx-auto">{props.children}</div>;
+  return <div className="container max-w-lg mx-auto pt-32">{props.children}</div>;
 };
 
 export default Layout;

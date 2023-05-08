@@ -19,8 +19,9 @@ const Claim = () => {
   const { address, connector } = useAccount();
 
   const handleClaim = async (adr: string) => {
-    const signer = connector?.getSigner();
-    if (signer || !address) {
+    const signer = await connector?.getSigner();
+
+    if (!signer || !address) {
       throw new Error("Wallet no connected");
     }
     const mdContract = new Contract(
@@ -53,11 +54,6 @@ const Claim = () => {
       `${POPOO_HKS_SERVICE}/trade-service/trade/hks/claimsAmount`,
       {
         walletAddress: adr,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
       }
     );
   };
@@ -66,7 +62,7 @@ const Claim = () => {
 
   return (
     <>
-      <div className="form-control w-full gap-4">
+      <div className="form-control w-full gap-4 py-6">
         <div>
           <label className="label">
             <span className="label-text">Your Wallet Address</span>

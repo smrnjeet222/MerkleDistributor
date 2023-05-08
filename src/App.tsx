@@ -10,6 +10,7 @@ import Claim from "./pages/Claim";
 import Records from "./pages/Records";
 import Balances from "./pages/Balances";
 import Layout from "./Layout";
+import useSticky from "./hooks/useSticky";
 
 const { provider } = configureChains([bscTestnet], [publicProvider()]);
 
@@ -24,12 +25,12 @@ const client = createClient(
 const queryClient = new QueryClient();
 
 const App = () => {
+  const { isSticky } = useSticky();
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiConfig client={client}>
         <ConnectKitProvider theme="retro">
-          <Navbar />
-          <div className="divider my-0" />
+          <Navbar isSticky={isSticky}/>
           <Layout>
             <Routes>
               <Route path="/" element={<Balances />} />

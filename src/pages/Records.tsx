@@ -19,7 +19,7 @@ const Records = () => {
 
   return (
     <>
-      <div className="form-control w-full gap-4">
+      <div className="form-control w-full gap-4 py-6">
         <div>
           <label className="label">
             <span className="label-text">Your Wallet Address</span>

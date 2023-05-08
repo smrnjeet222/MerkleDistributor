@@ -2,9 +2,12 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { POPOO_HKS_SERVICE } from "../contracts";
+import { useState } from "react";
+import { ethers } from "ethers";
 
 const Records = () => {
   const { address } = useAccount();
+  const [wallet, setWallet] = useState<string>(address!);
 
   const getClaimsRecordsMutation = useMutation({
     mutationFn: (addrr: string) => {
@@ -29,26 +32,53 @@ const Records = () => {
           </label>
           <input
             type="text"
-            readOnly
             placeholder="Wallet Address"
             className="input input-bordered w-full"
-            value={address}
+            onChange={(e) => {
+              setWallet(e.target.value);
+            }}
+            value={wallet}
           />
         </div>
         <button
           className="retro-btn btn btn-sm bg-inherit text-inherit hover:bg-inherit hover::text-inherit w-full disabled:loading "
           disabled={getClaimsRecordsMutation.isLoading}
           onClick={() => {
-            getClaimsRecordsMutation.mutate(address!);
+            getClaimsRecordsMutation.mutate(wallet);
           }}
         >
           get Claims Records
         </button>
-        {getClaimsRecordsMutation.isSuccess && (
-          <div className="bg-base-300 p-2 rounded-md">
-            {JSON.stringify(getClaimsRecordsMutation.data.data, null, 2)}
+        {getClaimsRecordsMutation.isError && (
+          <div className="bg-primary p-2 rounded-md break-all ">
+            {JSON.stringify(
+              (getClaimsRecordsMutation.error as any)?.message,
+              null,
+              2
+            )}
           </div>
         )}
+        {getClaimsRecordsMutation.isSuccess &&
+          !getClaimsRecordsMutation?.data.data.data.length && (
+            <div className="bg-primary p-2 rounded-md break-all ">
+              No Record
+            </div>
+          )}
+        {getClaimsRecordsMutation.isSuccess &&
+          getClaimsRecordsMutation.data.data.data.map((d: any) => (
+            <div className="bg-base-300 p-2 rounded-md" key={d.id}>
+              <span className="text-sm italic">Address: </span>
+              <span className="font-semibold">{d.walletAddress}</span>
+              <div className="divider my-0" />
+              <span className="text-sm italic">Receive Amount: </span>
+              <span className="font-semibold">
+                {ethers.utils.formatEther(d.receiveAmount).toString()}
+              </span>
+              <div className="divider my-0" />
+              <span className="text-sm italic">Date: </span>
+              <span className="font-semibold">{(new Date(d.createdAt)).toLocaleString()}</span>
+            </div>
+          ))}
       </div>
     </>
   );

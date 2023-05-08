@@ -2,7 +2,7 @@ import { Contract, ContractInterface, errors, ethers } from "ethers";
 import { useAccount } from "wagmi";
 import MD_ABI from "../contracts/merkleDistributor.json";
 import { MD_ADDRESS, POPOO_HKS_SERVICE } from "../contracts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { MerkleDistributor } from "../contracts/types";
@@ -17,6 +17,14 @@ interface Idata {
 
 const Claim = () => {
   const { address, connector } = useAccount();
+  const [wallet, setWallet] = useState<string>(address!);
+  const [amount, setAmount] = useState<number | "">("");
+
+  useEffect(() => {
+    if (address) {
+      setWallet(address);
+    }
+  }, [address]);
 
   const handleClaim = async (adr: string) => {
     const signer = await connector?.getSigner();
@@ -35,52 +43,94 @@ const Claim = () => {
     });
     const d: Idata = resp.data.data;
 
-    if (!d.merkleRoot)
+    if (resp.data.code === 1) throw new Error(resp.data.message);
+
+    if (!d?.merkleRoot)
       throw new Error("The return of Merkle tree data has not been reported");
 
-    const tx = await mdContract.claim(
-      d.index,
-      adr,
-      d.amount,
-      d.proof
-      // d.proof.map((x) => ethers.utils.formatBytes32String(x))
-    );
+    if (!amount) throw new Error("Amount cannot be null");
+
+    if (ethers.utils.parseEther(amount.toString()).gt(d.amount))
+      throw new Error(
+        `Amount cannot be greater than current balance,
+         Balance: ${ethers.utils.formatEther(d.amount).toString()}`
+      );
+
+    const tx = await mdContract.claim(d.index, adr, d.amount, d.proof);
     await tx.wait();
 
-    return axios.post(`api/trade-service/trade/hks/claimsAmount`, {
+    const resp2 = await axios.post(`api/trade-service/trade/hks/claimsAmount`, {
       walletAddress: adr,
+      claimAmount: amount,
     });
+    if (resp.data.code === 1) throw new Error(resp.data.message);
+
+    return resp2;
   };
 
-  const claimsAmountMutation = useMutation({ mutationFn: handleClaim });
+  const claimsAmountMutation = useMutation({
+    mutationFn: handleClaim,
+  });
 
   return (
     <>
       <div className="form-control w-full gap-4 py-6">
         <div>
           <label className="label">
-            <span className="label-text">Your Wallet Address</span>
+            <span className="label-text">Enter Wallet Address</span>
           </label>
           <input
             type="text"
-            readOnly
             placeholder="Wallet Address"
             className="input input-bordered w-full"
-            value={address}
+            onChange={(e) => {
+              setWallet(e.target.value);
+            }}
+            value={wallet}
+          />
+        </div>
+        <div>
+          <label className="label">
+            <span className="label-text">Enter Amount</span>
+          </label>
+          <input
+            type="number"
+            placeholder="Amount"
+            className="input input-bordered w-full"
+            onChange={(e) => {
+              if (e.target.value) {
+                setAmount(+e.target.value);
+              } else {
+                setAmount("");
+              }
+            }}
+            value={amount}
           />
         </div>
         <button
-          className="retro-btn btn btn-sm bg-inherit text-inherit hover:bg-inherit hover::text-inherit w-full disabled:loading "
+          className="mt-6 retro-btn btn btn-sm bg-inherit text-inherit hover:bg-inherit hover::text-inherit w-full disabled:loading "
           disabled={claimsAmountMutation.isLoading}
           onClick={() => {
-            claimsAmountMutation.mutate(address!);
+            claimsAmountMutation.mutate(wallet);
           }}
         >
           Claim
         </button>
+        {claimsAmountMutation.isError && (
+          <div className="bg-primary p-2 rounded-md break-all ">
+            {JSON.stringify(
+              (claimsAmountMutation.error as any)?.message,
+              null,
+              2
+            )}
+          </div>
+        )}
         {claimsAmountMutation.isSuccess && (
-          <div className="bg-base-300 p-2 rounded-md text-center uppercase font-semibold">
-            {JSON.stringify(claimsAmountMutation.data, null, 2)}
+          <div className="bg-base-300 p-2 rounded-md uppercase font-semibold">
+            Claim Success Remaining Balance:{" "}
+            {ethers.utils
+              .formatEther(claimsAmountMutation.data?.data?.data?.balance)
+              .toString()}
           </div>
         )}
       </div>

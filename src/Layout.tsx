@@ -2,7 +2,7 @@ import {
   JSXElementConstructor,
   ReactElement,
   ReactFragment,
-  ReactPortal
+  ReactPortal,
 } from "react";
 import { useAccount } from "wagmi";
 
@@ -21,18 +21,20 @@ const Layout = (props: {
 
   if (isConnecting)
     return (
-      <div className="container text-center m-auto my-4 text-4xl">
+      <div className="container text-center m-auto pt-32 text-4xl">
         Connecting...
       </div>
     );
   if (isDisconnected)
     return (
-      <div className="container text-center m-auto my-4 text-4xl">
-        Disconnected
+      <div className="container text-center m-auto pt-32 text-4xl">
+        Wallet is Disconnected
       </div>
     );
 
-  return <div className="container max-w-lg mx-auto pt-32">{props.children}</div>;
+  return (
+    <div className="container max-w-lg mx-auto pt-32">{props.children}</div>
+  );
 };
 
 export default Layout;

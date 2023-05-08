@@ -9,9 +9,12 @@ const Records = () => {
   const getClaimsRecordsMutation = useMutation({
     mutationFn: (addrr: string) => {
       return axios.post(
-        `${POPOO_HKS_SERVICE}/trade-service/trade/hks/getClaimsRecords`,
+        `api/trade-service/trade/hks/getClaimsRecords`,
+        { walletAddress: addrr },
         {
-          walletAddress: addrr,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
     },
@@ -43,12 +46,10 @@ const Records = () => {
         </button>
         {getClaimsRecordsMutation.isSuccess && (
           <div className="bg-base-300 p-2 rounded-md">
-            {JSON.stringify(getClaimsRecordsMutation.data, null, 2)}
+            {JSON.stringify(getClaimsRecordsMutation.data.data, null, 2)}
           </div>
         )}
       </div>
-
-      <div className="divider"></div>
     </>
   );
 };

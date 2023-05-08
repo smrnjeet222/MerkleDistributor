@@ -9,9 +9,7 @@ import axios from "axios";
 const Balances = () => {
   const getBalancesInfoMutation = useMutation({
     mutationFn: () => {
-      return axios.post(
-        `${POPOO_HKS_SERVICE}/trade-service/trade/hks/getBalances`
-      );
+      return axios.post(`api/trade-service/trade/hks/getBalances`);
     },
   });
 
@@ -22,7 +20,9 @@ const Balances = () => {
   return (
     <>
       <div className="flex flex-col w-full gap-4 py-6">
-        {getBalancesInfoMutation.isLoading && <progress className="progress w-full p-1" />}
+        {getBalancesInfoMutation.isLoading && (
+          <progress className="progress w-full p-1" />
+        )}
         {getBalancesInfoMutation.isSuccess &&
           Object.entries<string>(getBalancesInfoMutation.data.data.data).map(
             (d) => (

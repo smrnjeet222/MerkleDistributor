@@ -30,12 +30,9 @@ const Claim = () => {
       signer
     ) as MerkleDistributor;
 
-    const resp = await axios.post(
-      `${POPOO_HKS_SERVICE}/trade-service/trade/hks/getMerkelInfo`,
-      {
-        walletAddress: adr,
-      }
-    );
+    const resp = await axios.post(`api/trade-service/trade/hks/getMerkelInfo`, {
+      walletAddress: adr,
+    });
     const d: Idata = resp.data.data;
 
     if (!d.merkleRoot)
@@ -50,12 +47,9 @@ const Claim = () => {
     );
     await tx.wait();
 
-    return axios.post(
-      `${POPOO_HKS_SERVICE}/trade-service/trade/hks/claimsAmount`,
-      {
-        walletAddress: adr,
-      }
-    );
+    return axios.post(`api/trade-service/trade/hks/claimsAmount`, {
+      walletAddress: adr,
+    });
   };
 
   const claimsAmountMutation = useMutation({ mutationFn: handleClaim });

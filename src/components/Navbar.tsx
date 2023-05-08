@@ -12,7 +12,7 @@ function Navbar({ isSticky }: any) {
     >
       <div className="navbar container mx-auto flex-col-reverse gap-4 sm:flex-row">
         <div className="navbar-center sm:navbar-start">
-          <div className="tabs tabs-boxed w-max ">
+          <div className="tabs tabs-boxed w-max bg-base-300 bg-opacity-50 border border-base-300">
             <NavLink
               to="/"
               className={({ isActive }) =>

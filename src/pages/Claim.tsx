@@ -1,11 +1,12 @@
-import { Contract, ContractInterface, errors, ethers } from "ethers";
-import { useAccount } from "wagmi";
-import MD_ABI from "../contracts/merkleDistributor.json";
-import { MD_ADDRESS, POPOO_HKS_SERVICE } from "../contracts";
-import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { Contract, ContractInterface, ethers } from "ethers";
+import { useState } from "react";
+import { useAccount } from "wagmi";
+import { MD_ADDRESS } from "../contracts";
+import MD_ABI from "../contracts/merkleDistributor.json";
 import { MerkleDistributor } from "../contracts/types";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 interface Idata {
   amount: string;
@@ -17,14 +18,8 @@ interface Idata {
 
 const Claim = () => {
   const { address, connector } = useAccount();
-  const [wallet, setWallet] = useState<string>(address!);
   const [amount, setAmount] = useState<number | "">("");
-
-  useEffect(() => {
-    if (address) {
-      setWallet(address);
-    }
-  }, [address]);
+  const [wallet, setWallet] = useLocalStorage<string>("input", address!);
 
   const handleClaim = async (adr: string) => {
     const signer = await connector?.getSigner();

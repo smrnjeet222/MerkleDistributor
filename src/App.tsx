@@ -1,16 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultClient } from "connectkit";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { WagmiConfig, configureChains, createClient } from "wagmi";
 import { bscTestnet } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
+import Layout from "./Layout";
 import Navbar from "./components/Navbar";
-import Home from "./Layout";
+import useSticky from "./hooks/useSticky";
+import Balances from "./pages/Balances";
 import Claim from "./pages/Claim";
 import Records from "./pages/Records";
-import Balances from "./pages/Balances";
-import Layout from "./Layout";
-import useSticky from "./hooks/useSticky";
 
 const { provider } = configureChains([bscTestnet], [publicProvider()]);
 
@@ -29,8 +28,13 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiConfig client={client}>
-        <ConnectKitProvider theme="retro">
-          <Navbar isSticky={isSticky}/>
+        <ConnectKitProvider
+          theme="retro"
+          onDisconnect={() => {
+            window.localStorage.removeItem("input");
+          }}
+        >
+          <Navbar isSticky={isSticky} />
           <Layout>
             <Routes>
               <Route path="/" element={<Balances />} />

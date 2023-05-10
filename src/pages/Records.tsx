@@ -1,13 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { useAccount } from "wagmi";
-import { POPOO_HKS_SERVICE } from "../contracts";
-import { useState } from "react";
 import { ethers } from "ethers";
+import { useAccount } from "wagmi";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 
 const Records = () => {
   const { address } = useAccount();
-  const [wallet, setWallet] = useState<string>(address!);
+  const [wallet, setWallet] = useLocalStorage<string>("input", address!);
 
   const getClaimsRecordsMutation = useMutation({
     mutationFn: (addrr: string) => {
@@ -28,7 +27,7 @@ const Records = () => {
       <div className="form-control w-full gap-4 py-6">
         <div>
           <label className="label">
-            <span className="label-text">Your Wallet Address</span>
+            <span className="label-text">Enter Wallet Address</span>
           </label>
           <input
             type="text"
@@ -76,7 +75,9 @@ const Records = () => {
               </span>
               <div className="divider my-0" />
               <span className="text-sm italic">Date: </span>
-              <span className="font-semibold">{(new Date(d.createdAt)).toLocaleString()}</span>
+              <span className="font-semibold">
+                {new Date(d.createdAt).toLocaleString()}
+              </span>
             </div>
           ))}
       </div>

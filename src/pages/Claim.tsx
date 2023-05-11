@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { Contract, ContractInterface, ethers } from "ethers";
+import { Contract, ContractInterface, ethers, logger } from "ethers";
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { MD_ADDRESS } from "../contracts";
@@ -18,7 +18,7 @@ interface Idata {
 
 const Claim = () => {
   const { address, connector } = useAccount();
-  const [amount, setAmount] = useState<number | "">("");
+  const [amount, setAmount] = useState<string>("");
   const [wallet, setWallet] = useLocalStorage<string>("input", address!);
 
   const handleClaim = async (adr: string) => {
@@ -45,7 +45,10 @@ const Claim = () => {
 
     if (!amount) throw new Error("Amount cannot be null");
 
-    if (ethers.utils.parseEther(amount.toString()).gt(d.amount))
+    console.log(amount);
+    console.log(ethers.utils.parseEther(amount).toString(), d.amount);
+
+    if (ethers.utils.parseEther(amount).gt(d.amount))
       throw new Error(
         `Amount cannot be greater than current balance,
          Balance: ${ethers.utils.formatEther(d.amount).toString()}`
@@ -54,14 +57,14 @@ const Claim = () => {
     const tx = await mdContract.claim(
       d.index,
       adr,
-      ethers.utils.parseEther(amount.toString()),
+      ethers.utils.parseEther(amount),
       d.proof
     );
     await tx.wait();
 
     const resp2 = await axios.post(`api/trade-service/trade/hks/claimsAmount`, {
       walletAddress: adr,
-      claimAmount: ethers.utils.parseEther(amount.toString()),
+      claimAmount: ethers.utils.parseEther(amount),
     });
     if (resp.data.code === 1) throw new Error(resp.data.message);
 
@@ -94,12 +97,12 @@ const Claim = () => {
             <span className="label-text">Enter Amount</span>
           </label>
           <input
-            type="number"
+            type="text"
             placeholder="Amount"
             className="input input-bordered w-full"
             onChange={(e) => {
               if (e.target.value) {
-                setAmount(+e.target.value);
+                setAmount(e.target.value.trim().replace(/[^\d\.]/g, ""));
               } else {
                 setAmount("");
               }

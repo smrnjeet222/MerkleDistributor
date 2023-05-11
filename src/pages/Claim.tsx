@@ -12,8 +12,8 @@ interface Idata {
   amount: string;
   index: number;
   proof: string[];
-  account: string;
-  merkleRoot: string | null;
+  // account: string;
+  // merkleRoot: string | null;
 }
 
 const Claim = () => {
@@ -33,14 +33,22 @@ const Claim = () => {
       signer
     ) as MerkleDistributor;
 
-    const resp = await axios.post(`api/trade-service/trade/hks/getMerkelInfo`, {
-      walletAddress: adr,
-    });
-    const d: Idata = resp.data.data;
+    // const resp = await axios.post(`api/trade-service/trade/hks/getMerkelInfo`, {
+    //   walletAddress: adr,
+    // });
+    const resp = await axios.get(
+      `https://gnfd-testnet-sp-7.bnbchain.org/view/popoo/merkel_proof.json`
+    );
+    const merkleRoot = resp.data.merkleRoot;
+    const allClaims = resp.data.claims;
+
+    const d: Idata = allClaims[adr];
+
+    console.log(d);
 
     if (resp.data.code === 1) throw new Error(resp.data.message);
 
-    if (!d?.merkleRoot)
+    if (!merkleRoot || !d?.proof || !d?.proof.length)
       throw new Error("The return of Merkle tree data has not been reported");
 
     if (!amount) throw new Error("Amount cannot be null");
@@ -62,13 +70,13 @@ const Claim = () => {
     );
     await tx.wait();
 
-    const resp2 = await axios.post(`api/trade-service/trade/hks/claimsAmount`, {
-      walletAddress: adr,
-      claimAmount: ethers.utils.parseEther(amount),
-    });
-    if (resp.data.code === 1) throw new Error(resp.data.message);
+    // const resp2 = await axios.post(`api/trade-service/trade/hks/claimsAmount`, {
+    //   walletAddress: adr,
+    //   claimAmount: ethers.utils.parseEther(amount),
+    // });
+    // if (resp.data.code === 1) throw new Error(resp.data.message);
 
-    return resp2;
+    // return resp2;
   };
 
   const claimsAmountMutation = useMutation({
@@ -130,10 +138,11 @@ const Claim = () => {
         )}
         {claimsAmountMutation.isSuccess && (
           <div className="bg-base-300 p-2 rounded-md uppercase font-semibold">
-            Claim Success Remaining Balance:{" "}
+            Claim Success 
+            {/* Remaining Balance:{" "}
             {ethers.utils
               .formatEther(claimsAmountMutation.data?.data?.data?.balance)
-              .toString()}
+              .toString()} */}
           </div>
         )}
       </div>

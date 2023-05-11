@@ -25,3 +25,6 @@ dist-ssr
 
 # contract types
 src/contracts/types
+getBalances.json
+.gitignore
+getMerkelInfo.json

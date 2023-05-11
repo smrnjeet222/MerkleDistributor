@@ -51,12 +51,17 @@ const Claim = () => {
          Balance: ${ethers.utils.formatEther(d.amount).toString()}`
       );
 
-    const tx = await mdContract.claim(d.index, adr, d.amount, d.proof);
+    const tx = await mdContract.claim(
+      d.index,
+      adr,
+      ethers.utils.parseEther(amount.toString()),
+      d.proof
+    );
     await tx.wait();
 
     const resp2 = await axios.post(`api/trade-service/trade/hks/claimsAmount`, {
       walletAddress: adr,
-      claimAmount: amount,
+      claimAmount: ethers.utils.parseEther(amount.toString()),
     });
     if (resp.data.code === 1) throw new Error(resp.data.message);
 

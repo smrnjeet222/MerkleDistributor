@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Contract, ContractInterface, ethers, logger } from "ethers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { MD_ADDRESS } from "../contracts";
 import MD_ABI from "../contracts/merkleDistributor.json";
@@ -21,6 +21,20 @@ const Claim = () => {
   const [amount, setAmount] = useState<string>("");
   const [wallet, setWallet] = useLocalStorage<string>("input", address!);
 
+  const { data } = useQuery({
+    queryKey: ["merkel-proof"],
+    queryFn: async () => {
+      const resp = await axios.get(
+        `https://gnfd-testnet-sp-7.bnbchain.org/view/popoo/merkel_proof.json`
+      );
+      return resp.data
+    },
+  });
+
+  useEffect(() => {
+    setAmount(ethers.utils.formatEther(data?.claims?.[wallet]?.amount ?? "0"));
+  }, [wallet, data]);
+
   const handleClaim = async (adr: string) => {
     const signer = await connector?.getSigner();
 
@@ -36,19 +50,9 @@ const Claim = () => {
     // const resp = await axios.post(`api/trade-service/trade/hks/getMerkelInfo`, {
     //   walletAddress: adr,
     // });
-    const resp = await axios.get(
-      `https://gnfd-testnet-sp-7.bnbchain.org/view/popoo/merkel_proof.json`
-    );
-    const merkleRoot = resp.data.merkleRoot;
-    const allClaims = resp.data.claims;
+    const d: Idata = data?.claims?.[adr];
 
-    const d: Idata = allClaims[adr];
-
-    console.log(d);
-
-    if (resp.data.code === 1) throw new Error(resp.data.message);
-
-    if (!merkleRoot || !d?.proof || !d?.proof.length)
+    if (!data?.merkleRoot || !d?.proof || !d?.proof.length)
       throw new Error("The return of Merkle tree data has not been reported");
 
     if (!amount) throw new Error("Amount cannot be null");
@@ -138,7 +142,7 @@ const Claim = () => {
         )}
         {claimsAmountMutation.isSuccess && (
           <div className="bg-base-300 p-2 rounded-md uppercase font-semibold">
-            Claim Success 
+            Claim Success
             {/* Remaining Balance:{" "}
             {ethers.utils
               .formatEther(claimsAmountMutation.data?.data?.data?.balance)
